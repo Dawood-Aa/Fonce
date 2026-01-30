@@ -180,7 +180,7 @@ const HYPE_GIFS = [
 client.on("messageCreate", async message => {
   try {
     if (message.author.bot) return;
-    if (message.channel.name !== "wins") return;
+    if (message.channel.name !== "🥇wins") return;
 
     // check attachments safely
     const hasImage = message.attachments.some(att =>
@@ -199,6 +199,7 @@ client.on("messageCreate", async message => {
 });
 
 client.login(process.env.BOT_TOKEN);
+
 
 
 
