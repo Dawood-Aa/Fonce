@@ -129,9 +129,21 @@ const HYPE_REPLIES = [
 ];
 
 const HYPE_GIFS = [
-  "https://media.giphy.com/media/3o6Zt481isNVuQI1l6/giphy.gif",
-  "https://media.giphy.com/media/l0HlFZ3c4NENSLQRi/giphy.gif",
-  "https://media.giphy.com/media/xUPGcgtKxm9G7s7Vfi/giphy.gif"
+ "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTl2bWYxbm05a3AxbnBxMWkxNWY1MHZ6MHIxdHgyMGpqMDJzd2YyZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8JZmEBXoCgDleNWFUt/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/b1o4elYH8Tqjm/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/FY2ew2Zii9VOE/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/266wwviUCMFFgqQGdn/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/WsXAEMXxqqQR0tvmq0/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/OmGtCYLH9uSd2/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fkD36jhiqzJ9m/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/IEqfsVxMDbkWR3LRbI/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/RljlDe17ULiTm1alVX/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/7ZvPlxBHwfK1y/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/OipLlf80joIHbPjyEC/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bg57WaCwp2lji/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif"
 ];
 
 client.on("messageCreate", async message => {
@@ -156,5 +168,6 @@ client.on("messageCreate", async message => {
 });
 
 client.login(process.env.BOT_TOKEN);
+
 
 
