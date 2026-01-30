@@ -23,19 +23,24 @@ const HYPE_GIFS = [
 ];
 
 client.on("messageCreate", async message => {
-  if (message.author.bot) return;
-  if (message.channel.name !== "wins") return;
+  try {
+    if (message.author.bot) return;
+    if (message.channel.name !== "wins") return;
 
-  const hasImage = message.attachments.some(att =>
-    att.contentType?.startsWith("image/")
-  );
+    // check attachments safely
+    const hasImage = message.attachments.some(att =>
+      att.contentType ? att.contentType.startsWith("image/") : att.name?.match(/\.(jpg|jpeg|png|gif)$/i)
+    );
 
-  if (!hasImage) return;
+    if (!hasImage) return;
 
-  const pool = Math.random() < 0.5 ? HYPE_REPLIES : HYPE_GIFS;
-  const reply = pool[Math.floor(Math.random() * pool.length)];
+    const pool = Math.random() < 0.5 ? HYPE_REPLIES : HYPE_GIFS;
+    const reply = pool[Math.floor(Math.random() * pool.length)];
 
-  await message.reply(reply);
+    await message.reply(reply);
+  } catch (err) {
+    console.error("Error handling message:", err);
+  }
 });
 
 client.login(process.env.BOT_TOKEN);
