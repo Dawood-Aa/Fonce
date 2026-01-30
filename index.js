@@ -114,7 +114,18 @@ const HYPE_REPLIES = [
   "HYPED UP AND READY, HOLY SHIT 💯",
   "THIS IS HOW WE DO IT, BITCHES 😤",
   "PURE FLEX ENERGY, MOTHERFUCKERS 💥",
-  "LOOK AT THIS SKILL, HOLY SHIT 👀"
+  "LOOK AT THIS SKILL, HOLY SHIT 👀",
+  "I think I came 😳",
+  "Fuck, I'm so hard seeing that",
+  "UR GETTING ME WET",
+  "LOOK AT THAT BEAUTIFUL WIN",
+  "Pookie can I have some more? 🥹 🙏",
+  "I wanna suck on that thick fat win",
+  "FUCKKK!!!",
+  "spank me with those wins 🍆",
+  "UR TRYING TO MAKE ME CUM",
+  "LETS GET ANOTHER 200 OUT OF HIM!",
+  "milk me like u milked that whale 🐳"
 ];
 
 const HYPE_GIFS = [
@@ -145,4 +156,5 @@ client.on("messageCreate", async message => {
 });
 
 client.login(process.env.BOT_TOKEN);
+
 
