@@ -7,33 +7,31 @@ const {
   TextInputBuilder,
   TextInputStyle,
   EmbedBuilder,
+  Events,
 } = require("discord.js");
 
 module.exports = (client) => {
-  // REGISTER SLASH COMMAND
-  client.once("ready", async () => {
+  // REGISTER GLOBAL SLASH COMMAND
+  client.once(Events.ClientReady, async () => {
     try {
-      const data = [
+      const commands = [
         new SlashCommandBuilder()
           .setName("leave")
-          .setDescription("Submit a leave request")
+          .setDescription("Submit a leave request"),
       ].map(cmd => cmd.toJSON());
 
-const guild = await client.guilds.fetch(process.env.GUILD_ID);
-await guild.commands.set(data);
-
-      console.log("Leave command registered for your server ✅");
+      await client.application.commands.set(commands);
+      console.log("Global /leave command registered ✅");
     } catch (err) {
-      console.error("Error registering leave command:", err);
+      console.error("Error registering global command:", err);
     }
   });
 
   // HANDLE SLASH COMMAND
-  client.on("interactionCreate", async interaction => {
+  client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isChatInputCommand()) return;
     if (interaction.commandName !== "leave") return;
 
-    // Create modal
     const modal = new ModalBuilder()
       .setCustomId("leaveModal")
       .setTitle("Submit Leave Request");
@@ -46,7 +44,7 @@ await guild.commands.set(data);
 
     const dateInput = new TextInputBuilder()
       .setCustomId("dates")
-      .setLabel("Date(s) (comma separated if multiple)")
+      .setLabel("Date(s) (comma separated)")
       .setStyle(TextInputStyle.Short)
       .setRequired(true);
 
@@ -79,23 +77,34 @@ await guild.commands.set(data);
     await interaction.showModal(modal);
   });
 
-  // HANDLE MODAL SUBMISSION
-  client.on("interactionCreate", async interaction => {
+  // HANDLE MODAL SUBMIT
+  client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isModalSubmit()) return;
     if (interaction.customId !== "leaveModal") return;
 
     const name = interaction.fields.getTextInputValue("name");
-    const dates = interaction.fields.getTextInputValue("dates")
+    const dates = interaction.fields
+      .getTextInputValue("dates")
       .split(",")
       .map(d => d.trim());
+
     const shift = interaction.fields.getTextInputValue("shift");
     const models = interaction.fields.getTextInputValue("models");
     const reason = interaction.fields.getTextInputValue("reason");
 
-    await interaction.reply({ content: "Leave request submitted ✅", ephemeral: true });
+    await interaction.reply({
+      content: "Leave request submitted ✅",
+      ephemeral: true,
+    });
 
-    const leaveChannel = interaction.guild.channels.cache.find(ch => ch.name === "leave-requests");
-    if (!leaveChannel) return console.log("Leave channel not found");
+    const leaveChannel = interaction.guild.channels.cache.find(
+      ch => ch.name === "leave-requests"
+    );
+
+    if (!leaveChannel) {
+      console.log("leave-requests channel not found");
+      return;
+    }
 
     for (const date of dates) {
       const embed = new EmbedBuilder()
@@ -110,58 +119,80 @@ await guild.commands.set(data);
         )
         .setFooter({ text: "Status: Pending" });
 
-      const buttons = new ActionRowBuilder()
-        .addComponents(
-          new ButtonBuilder()
-            .setCustomId(`approve_${interaction.user.id}_${date}`)
-            .setLabel("Approve")
-            .setStyle(ButtonStyle.Success),
-          new ButtonBuilder()
-            .setCustomId(`decline_${interaction.user.id}_${date}`)
-            .setLabel("Decline")
-            .setStyle(ButtonStyle.Danger)
-        );
+      const buttons = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`approve_${interaction.user.id}_${date}`)
+          .setLabel("Approve")
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId(`decline_${interaction.user.id}_${date}`)
+          .setLabel("Decline")
+          .setStyle(ButtonStyle.Danger)
+      );
 
-      await leaveChannel.send({ embeds: [embed], components: [buttons] });
+      await leaveChannel.send({
+        embeds: [embed],
+        components: [buttons],
+      });
     }
   });
 
-  // HANDLE BUTTONS (approve/decline/claim)
-  client.on("interactionCreate", async interaction => {
+  // HANDLE BUTTONS
+  client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isButton()) return;
 
     const [action, userId, date] = interaction.customId.split("_");
     const user = await client.users.fetch(userId).catch(() => null);
+    if (!user) {
+      return interaction.reply({ content: "User not found ❌", ephemeral: true });
+    }
 
-    if (!user) return interaction.reply({ content: "User not found ❌", ephemeral: true });
-
-    const origEmbed = EmbedBuilder.from(interaction.message.embeds[0]);
-    let components = interaction.message.components;
+    const embed = EmbedBuilder.from(interaction.message.embeds[0]);
 
     if (action === "approve") {
       await user.send(`Your leave for ${date} has been approved ✅`);
 
-      const claimBtn = new ActionRowBuilder().addComponents(
+      embed
+        .setColor("Green")
+        .setFooter({ text: "Status: Approved" });
+
+      const claimRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId(`claim_${userId}_${date}`)
           .setLabel("Claim")
           .setStyle(ButtonStyle.Primary)
       );
 
-      origEmbed.setColor("Green").setFooter({ text: "Status: Approved" });
-      await interaction.update({ embeds: [origEmbed], components: [claimBtn] });
+      await interaction.update({
+        embeds: [embed],
+        components: [claimRow],
+      });
+    }
 
-    } else if (action === "decline") {
-      await user.send(`Your leave for ${date} has not been authorized ❌. Taking a day off will result in a fine.`);
-      origEmbed.setColor("Red").setFooter({ text: "Status: Declined" });
-      await interaction.update({ embeds: [origEmbed], components: [] });
+    if (action === "decline") {
+      await user.send(
+        `Your leave for ${date} has not been authorized ❌. Taking the day off will result in a fine.`
+      );
 
-    } else if (action === "claim") {
-      const claimer = interaction.user.username;
-      origEmbed.setFooter({ text: `Status: Claimed by ${claimer}` });
+      embed
+        .setColor("Red")
+        .setFooter({ text: "Status: Declined" });
 
-      // REMOVE ALL BUTTONS once claimed
-      await interaction.update({ embeds: [origEmbed], components: [] });
+      await interaction.update({
+        embeds: [embed],
+        components: [],
+      });
+    }
+
+    if (action === "claim") {
+      embed.setFooter({
+        text: `Status: Claimed by ${interaction.user.username}`,
+      });
+
+      await interaction.update({
+        embeds: [embed],
+        components: [],
+      });
     }
   });
 };
