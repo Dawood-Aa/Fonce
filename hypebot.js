@@ -153,31 +153,41 @@ const HYPE_REPLIES = [
 
 const HYPE_GIFS = [
  "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcTl2bWYxbm05a3AxbnBxMWkxNWY1MHZ6MHIxdHgyMGpqMDJzd2YyZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8JZmEBXoCgDleNWFUt/giphy.gif",
- "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/b1o4elYH8Tqjm/giphy.gif",
- "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/FY2ew2Zii9VOE/giphy.gif"
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/b1o4elYH8Tqjm/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/FY2ew2Zii9VOE/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcjk3Y2lkMm1id3R0YW1udW9tcWtqdjQ1enRvaHVxazk2ZmNyMnMydiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/266wwviUCMFFgqQGdn/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/WsXAEMXxqqQR0tvmq0/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/OmGtCYLH9uSd2/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fkD36jhiqzJ9m/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/IEqfsVxMDbkWR3LRbI/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/RljlDe17ULiTm1alVX/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/7ZvPlxBHwfK1y/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/OipLlf80joIHbPjyEC/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bg57WaCwp2lji/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif",
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif"
 ];
 
-module.exports = (client) => {
-  client.on("messageCreate", async message => {
-    try {
-      if (message.author.bot) return;
-      if (message.channel.name !== "🥇wins") return;
+client.on("messageCreate", async message => {
+  try {
+    if (message.author.bot) return;
+    if (message.channel.name !== "🥇wins") return;
 
-      // check if message has an image
-      const hasImage = message.attachments.some(att =>
-        att.contentType ? att.contentType.startsWith("image/") : att.name?.match(/\.(jpg|jpeg|png|gif)$/i)
-      );
+    // check attachments safely
+    const hasImage = message.attachments.some(att =>
+      att.contentType ? att.contentType.startsWith("image/") : att.name?.match(/\.(jpg|jpeg|png|gif)$/i)
+    );
 
-      if (!hasImage) return;
+    if (!hasImage) return;
 
-      const pool = Math.random() < 0.5 ? HYPE_REPLIES : HYPE_GIFS;
-      const reply = pool[Math.floor(Math.random() * pool.length)];
+    const pool = Math.random() < 0.5 ? HYPE_REPLIES : HYPE_GIFS;
+    const reply = pool[Math.floor(Math.random() * pool.length)];
 
-      await message.reply(reply);
+    await message.reply(reply);
+  } catch (err) {
+    console.error("Error handling message:", err);
+  }
+});
 
-    } catch (err) {
-      console.error("HypeBot error:", err);
-    }
-  });
-};
-
+client.login(process.env.BOT_TOKEN);
