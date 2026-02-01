@@ -19,10 +19,9 @@ module.exports = (client) => {
           .setDescription("Submit a leave request")
       ].map(cmd => cmd.toJSON());
 
-      const guild = client.guilds.cache.get(process.env.GUILD_ID); // target your server
-      if (!guild) return console.log("No guild found");
+const guild = await client.guilds.fetch(process.env.GUILD_ID);
+await guild.commands.set(data);
 
-      await guild.commands.set(data);
       console.log("Leave command registered for your server ✅");
     } catch (err) {
       console.error("Error registering leave command:", err);
