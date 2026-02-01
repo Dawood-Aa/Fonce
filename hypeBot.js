@@ -166,7 +166,8 @@ const HYPE_GIFS = [
   "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXlsbXFoYm1uYjIxcms2ZXNtYWVwbGVjbXM3eG5obGswdXd1bnBuOSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bg57WaCwp2lji/giphy.gif",
   "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif",
   "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif",
-  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif"
+  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif"",
+  "https://klipy.com/gifs/jollibee-4"
 ];
 
 
