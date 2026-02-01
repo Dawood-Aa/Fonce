@@ -161,14 +161,8 @@ module.exports = (client) => {
       const claimer = interaction.user.username;
       origEmbed.setFooter({ text: `Status: Claimed by ${claimer}` });
 
-      // Remove only the claim button clicked, keep others (if multiple) intact
-      components = components.map(row => {
-        const newRow = ActionRowBuilder.from(row);
-        newRow.components = newRow.components.filter(btn => btn.customId !== interaction.customId);
-        return newRow;
-      });
-
-      await interaction.update({ embeds: [origEmbed], components });
+      // REMOVE ALL BUTTONS once claimed
+      await interaction.update({ embeds: [origEmbed], components: [] });
     }
   });
 };
