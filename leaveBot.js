@@ -98,7 +98,7 @@ module.exports = (client) => {
     });
 
     const leaveChannel = interaction.guild.channels.cache.find(
-      ch => ch.name === "leave-requests"
+      ch => ch.name === "🛏️leave-requests🛏️"
     );
 
     if (!leaveChannel) {
