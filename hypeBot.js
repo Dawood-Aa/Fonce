@@ -169,25 +169,27 @@ const HYPE_GIFS = [
   "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZzRydWVpbjQ0MDd3emtiM251ZXBvb211b3V6ZDJ5djhudDU4bWJpbyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Cn5rEZhpu5aPC/giphy.gif"
 ];
 
-client.on("messageCreate", async message => {
-  try {
-    if (message.author.bot) return;
-    if (message.channel.name !== "🥇wins") return;
 
-    // check attachments safely
-    const hasImage = message.attachments.some(att =>
-      att.contentType ? att.contentType.startsWith("image/") : att.name?.match(/\.(jpg|jpeg|png|gif)$/i)
-    );
+module.exports = (client) => {
+  client.on("messageCreate", async message => {
+    try {
+      if (message.author.bot) return;
+      if (message.channel.name !== "🥇wins") return;
 
-    if (!hasImage) return;
+      // check if message has an image
+      const hasImage = message.attachments.some(att =>
+        att.contentType ? att.contentType.startsWith("image/") : att.name?.match(/\.(jpg|jpeg|png|gif)$/i)
+      );
 
-    const pool = Math.random() < 0.5 ? HYPE_REPLIES : HYPE_GIFS;
-    const reply = pool[Math.floor(Math.random() * pool.length)];
+      if (!hasImage) return;
 
-    await message.reply(reply);
-  } catch (err) {
-    console.error("Error handling message:", err);
-  }
-});
+      const pool = Math.random() < 0.5 ? HYPE_REPLIES : HYPE_GIFS;
+      const reply = pool[Math.floor(Math.random() * pool.length)];
 
-client.login(process.env.BOT_TOKEN);
+      await message.reply(reply);
+
+    } catch (err) {
+      console.error("HypeBot error:", err);
+    }
+  });
+};
