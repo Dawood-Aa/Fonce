@@ -95,7 +95,7 @@ module.exports = (client) => {
 
     await interaction.reply({ content: "Leave request submitted ✅", ephemeral: true });
 
-    const leaveChannel = interaction.guild.channels.cache.find(ch => ch.name === "model-content-upload");
+    const leaveChannel = interaction.guild.channels.cache.find(ch => ch.name === "leave-requests");
     if (!leaveChannel) return console.log("Leave channel not found");
 
     for (const date of dates) {
