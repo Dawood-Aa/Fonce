@@ -29,8 +29,8 @@ const LEAVE_REQUESTS_CHANNEL_NAME = "🛏️leave-requests🛏️";
 const COVER_TZ = "America/New_York";
 const WEEKLY_REPORT_CHANNEL_ID = "1467641541433757969";
 
-const GITHUB_OWNER = "ekwdjiuh23723273";
-const GITHUB_REPO = "ArsiBot";
+const GITHUB_OWNER = "Dawood-Aa";
+const GITHUB_REPO = "Fonce";
 const GITHUB_PATH = "leaves.json";
 
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
