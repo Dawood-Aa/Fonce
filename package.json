@@ -1,0 +1,14 @@
+{
+  "name": "wins-hype-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.2",
+    "discord.js": "^14.14.1",
+    "node-cron": "^3.0.3"
+  }
+}
