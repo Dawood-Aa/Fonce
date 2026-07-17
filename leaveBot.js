@@ -201,6 +201,18 @@ module.exports = (client, admin) => {
       } else {
         console.log("Global /coverage command already registered ✅");
       }
+      
+      if (!existing.some((cmd) => cmd.name === "postleaveinstructions")) {
+  const command = new SlashCommandBuilder()
+    .setName("postleaveinstructions")
+    .setDescription("Post leave request instructions")
+    .toJSON();
+
+  await client.application.commands.create(command);
+  console.log("Global /postleaveinstructions command registered ✅");
+} else {
+  console.log("Global /postleaveinstructions command already registered ✅");
+}
     } catch (err) {
       console.error("Error registering global command:", err);
     }
@@ -262,6 +274,52 @@ module.exports = (client, admin) => {
       await interaction.reply({ embeds: [embed], ephemeral: false });
       return;
     }
+
+    client.once(Events.ClientReady, async () => {
+  try {
+    const existing = await client.application.commands.fetch();
+
+    if (!existing.some((cmd) => cmd.name === "leave")) {
+      const command = new SlashCommandBuilder()
+        .setName("leave")
+        .setDescription("Submit a leave request")
+        .toJSON();
+
+      await client.application.commands.create(command);
+      console.log("Global /leave command registered ✅");
+    } else {
+      console.log("Global /leave command already registered ✅");
+    }
+
+    if (!existing.some((cmd) => cmd.name === "coverage")) {
+      const command = new SlashCommandBuilder()
+        .setName("coverage")
+        .setDescription("Show approved leave coverage status")
+        .toJSON();
+
+      await client.application.commands.create(command);
+      console.log("Global /coverage command registered ✅");
+    } else {
+      console.log("Global /coverage command already registered ✅");
+    }
+
+    // 👇 PASTE IT HERE
+    if (!existing.some((cmd) => cmd.name === "postleaveinstructions")) {
+      const command = new SlashCommandBuilder()
+        .setName("postleaveinstructions")
+        .setDescription("Post leave request instructions")
+        .toJSON();
+
+      await client.application.commands.create(command);
+      console.log("Global /postleaveinstructions command registered ✅");
+    } else {
+      console.log("Global /postleaveinstructions command already registered ✅");
+    }
+
+  } catch (err) {
+    console.error("Error registering global command:", err);
+  }
+});
 
     if (interaction.commandName !== "leave") return;
 
