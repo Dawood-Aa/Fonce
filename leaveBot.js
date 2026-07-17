@@ -175,223 +175,115 @@ module.exports = (client, admin) => {
   }
 
   // ----------------- REGISTER SLASH COMMAND -----------------
-  client.once(Events.ClientReady, async () => {
-    try {
-      const existing = await client.application.commands.fetch();
-      if (!existing.some((cmd) => cmd.name === "leave")) {
-        const command = new SlashCommandBuilder()
-          .setName("leave")
-          .setDescription("Submit a leave request")
-          .toJSON();
+client.once(Events.ClientReady, async () => {
+  try {
+    const existing = await client.application.commands.fetch();
 
-        await client.application.commands.create(command);
-        console.log("Global /leave command registered ✅");
-      } else {
-        console.log("Global /leave command already registered ✅");
-      }
+    if (!existing.some((cmd) => cmd.name === "leave")) {
+      const command = new SlashCommandBuilder()
+        .setName("leave")
+        .setDescription("Submit a leave request")
+        .toJSON();
 
-      if (!existing.some((cmd) => cmd.name === "coverage")) {
-        const command = new SlashCommandBuilder()
-          .setName("coverage")
-          .setDescription("Show approved leave coverage status")
-          .toJSON();
-
-        await client.application.commands.create(command);
-        console.log("Global /coverage command registered ✅");
-      } else {
-        console.log("Global /coverage command already registered ✅");
-      }
-    } catch (err) {
-      console.error("Error registering global command:", err);
+      await client.application.commands.create(command);
+      console.log("Global /leave command registered ✅");
+    } else {
+      console.log("Global /leave command already registered ✅");
     }
-  });
 
+    if (!existing.some((cmd) => cmd.name === "coverage")) {
+      const command = new SlashCommandBuilder()
+        .setName("coverage")
+        .setDescription("Show approved leave coverage status")
+        .toJSON();
+
+      await client.application.commands.create(command);
+      console.log("Global /coverage command registered ✅");
+    } else {
+      console.log("Global /coverage command already registered ✅");
+    }
+
+    if (!existing.some((cmd) => cmd.name === "postleaveinstructions")) {
+      const command = new SlashCommandBuilder()
+        .setName("postleaveinstructions")
+        .setDescription("Post the leave request instructions")
+        .toJSON();
+
+      await client.application.commands.create(command);
+      console.log("Global /postleaveinstructions command registered ✅");
+    } else {
+      console.log("Global /postleaveinstructions command already registered ✅");
+    }
+
+  } catch (err) {
+    console.error("Error registering global command:", err);
+  }
+});
+  
   // ----------------- HANDLE SLASH COMMAND -----------------
-  client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isChatInputCommand()) return;
-    if (interaction.commandName === "coverage") {
-      const now = new Date();
-      const approved = leaves
-        .map((leave) => {
-          const dateParts = parseDateMdY(leave.date);
-          if (!dateParts) return null;
-          const shiftStart = parseShiftStart(leave.shift);
-          const coverTime = shiftStart
-            ? makeDateInTimeZone(
-                dateParts.year,
-                dateParts.month,
-                dateParts.day,
-                shiftStart.hour,
-                shiftStart.minute,
-                COVER_TZ
-              )
-            : makeDateInTimeZone(
-                dateParts.year,
-                dateParts.month,
-                dateParts.day,
-                23,
-                59,
-                COVER_TZ
-              );
-          return { leave, coverTime, shiftStart };
-        })
-        .filter((entry) => entry && entry.leave.status === "Approved" && now < entry.coverTime)
-        .sort((a, b) => a.coverTime - b.coverTime);
+...
+      await interaction.reply({ embeds: [embed], ephemeral: false });
+      return;
+    }
 
-      if (approved.length === 0) {
-        await interaction.reply({ content: "No upcoming approved leave shifts.", ephemeral: false });
-        return;
+    // ----------------- POST LEAVE INSTRUCTIONS -----------------
+    if (interaction.commandName === "postleaveinstructions") {
+      if (
+        !interaction.member.roles.cache.some((r) =>
+          allowedRoles.includes(r.id)
+        )
+      ) {
+        return interaction.reply({
+          content: "❌ You don't have permission to use this command.",
+          ephemeral: true,
+        });
       }
 
-      const embed = new EmbedBuilder()
-        .setTitle("Coverage Schedule")
-        .setColor("Blue")
-        .setTimestamp();
-
-      approved.forEach(({ leave, coverTime, shiftStart }) => {
-        const claimedBy = leave.claimedBy ? `<@${leave.claimedBy}>` : "Unclaimed";
-        const timeLabel = shiftStart
-          ? coverTime.toLocaleString("en-US", { timeZone: COVER_TZ })
-          : "Time TBD";
-        embed.addFields({
-          name: `${leave.name} - ${leave.date}`,
-          value: `Shift: ${leave.shift}\nCover time: ${timeLabel} ET\nModels: ${leave.models}\nCover: ${claimedBy}`,
-        });
+      const channel = await findChannel(interaction.guild, {
+        id: LEAVE_REQUESTS_CHANNEL_ID,
+        name: LEAVE_REQUESTS_CHANNEL_NAME,
+        normalizedTarget: "leave-requests",
       });
 
-      await interaction.reply({ embeds: [embed], ephemeral: false });
+      if (!channel) {
+        return interaction.reply({
+          content: "❌ Leave requests channel not found.",
+          ephemeral: true,
+        });
+      }
+
+      await channel.send(`# **how to request leave:**
+go to **<#1467626250196746565>** and type **/leave**. fill the form and submit. management will approve or decline it. you will get a DM once reviewed.
+
+## **date format:**
+use **MM/DD/YYYY** (example: \`02/15/2026\`).
+multiple dates can be separated with commas.
+
+## **shift format (important):**
+you MUST include a start time so reminders work. examples:
+\`9am day shift\`
+\`2pm to 10pm\`
+\`14:00 shift\`
+\`night shift, starts 7pm\`
+for partial cover: \`2pm to 6pm cover\`
+
+## **claiming shifts:**
+when approved, <@&1416542249667264616> will be pinged in **<#1467626250196746565>**. click **Claim** to take the shift.
+
+# Any requests not following this format will be DECLINED`);
+
+      await interaction.reply({
+        content: "✅ Leave instructions posted.",
+        ephemeral: true,
+      });
+
       return;
     }
 
     if (interaction.commandName !== "leave") return;
 
     const modal = new ModalBuilder()
-      .setCustomId("leaveModal")
-      .setTitle("Submit Leave Request");
-
-    const nameInput = new TextInputBuilder()
-      .setCustomId("name")
-      .setLabel("Your Name")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const dateInput = new TextInputBuilder()
-      .setCustomId("dates")
-      .setLabel("Date(s) (comma separated, MM/DD/YYYY)")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const shiftInput = new TextInputBuilder()
-      .setCustomId("shift")
-      .setLabel("Shift")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const modelsInput = new TextInputBuilder()
-      .setCustomId("models")
-      .setLabel("Models affected")
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
-
-    const reasonInput = new TextInputBuilder()
-      .setCustomId("reason")
-      .setLabel("Reason")
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
-
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(nameInput),
-      new ActionRowBuilder().addComponents(dateInput),
-      new ActionRowBuilder().addComponents(shiftInput),
-      new ActionRowBuilder().addComponents(modelsInput),
-      new ActionRowBuilder().addComponents(reasonInput)
-    );
-
-    await interaction.showModal(modal);
-  });
-
-  // ----------------- HANDLE MODAL SUBMIT -----------------
-  client.on(Events.InteractionCreate, async (interaction) => {
-    if (!interaction.isModalSubmit()) return;
-    if (interaction.customId !== "leaveModal") return;
-
-    const name = interaction.fields.getTextInputValue("name");
-    const dates = interaction.fields
-      .getTextInputValue("dates")
-      .split(",")
-      .map((d) => d.trim());
-
-    const shift = interaction.fields.getTextInputValue("shift");
-    const models = interaction.fields.getTextInputValue("models");
-    const reason = interaction.fields.getTextInputValue("reason");
-
-    await interaction.reply({ content: "Leave request submitted ✅", ephemeral: true });
-
-    const approvalChannel = await findChannel(interaction.guild, {
-      id: APPROVAL_CHANNEL_ID,
-      name: APPROVAL_CHANNEL_NAME,
-      normalizedTarget: "leave-approval",
-    });
-
-    if (!approvalChannel) {
-      console.log("leave-approval channel not found");
-      await interaction.followUp({
-        content:
-          "Leave request could not be posted: approval channel not found. Set LEAVE_APPROVAL_CHANNEL_ID or rename the channel to leave-approval.",
-        ephemeral: true,
-      });
-      return;
-    }
-
-    for (const date of dates) {
-      const embed = new EmbedBuilder()
-        .setTitle("Leave Request")
-        .setColor("Yellow")
-        .addFields(
-          { name: "Chatter", value: name, inline: true },
-          { name: "Date", value: date, inline: true },
-          { name: "Shift", value: shift, inline: true },
-          { name: "Models", value: models },
-          { name: "Reason", value: reason }
-        )
-        .setFooter({ text: "Status: Pending" });
-
-      const buttons = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId(`approve_${interaction.user.id}_${date}`)
-          .setLabel("Approve")
-          .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-          .setCustomId(`decline_${interaction.user.id}_${date}`)
-          .setLabel("Decline")
-          .setStyle(ButtonStyle.Danger)
-      );
-
-      await approvalChannel.send({
-        content: approvalRoleIds.map((id) => `<@&${id}>`).join(" "),
-        allowedMentions: { roles: approvalRoleIds },
-        embeds: [embed],
-        components: [buttons],
-      });
-
-      leaves.push({
-        userId: interaction.user.id,
-        name,
-        date,
-        shift,
-        models,
-        reason,
-        status: "Pending",
-        approverId: null,
-        claimedBy: null,
-        reminderSentAt: null,
-        timestamp: new Date().toISOString(),
-      });
-
-      await saveLeaves();
-    }
-  });
-
+...
   // ----------------- HANDLE BUTTONS -----------------
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
