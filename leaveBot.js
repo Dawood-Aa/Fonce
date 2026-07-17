@@ -221,7 +221,6 @@ client.once(Events.ClientReady, async () => {
 });
   
   // ----------------- HANDLE SLASH COMMAND -----------------
-...
       await interaction.reply({ embeds: [embed], ephemeral: false });
       return;
     }
