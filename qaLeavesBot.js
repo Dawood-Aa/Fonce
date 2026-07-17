@@ -197,6 +197,8 @@ module.exports = (client, admin) => {
       );
 
       await qaChannel.send({
+        content: `<@&${ALLOWED_ROLE_ID}>`,
+        allowedMentions: { roles: [ALLOWED_ROLE_ID] },
         embeds: [embed],
         components: [claimRow],
       });
