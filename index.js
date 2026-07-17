@@ -11,5 +11,7 @@ const admin = require("./adminBot")(client);
 require("./hypeBot")(client, admin);
 require("./leaveBot")(client, admin);
 require("./raffleBot")(client, admin);
+require("./qaLeavesBot.js")(client, admin);
+
 
 client.login(process.env.BOT_TOKEN);
