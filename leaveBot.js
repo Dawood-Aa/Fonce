@@ -275,34 +275,32 @@ module.exports = (client, admin) => {
       return;
     }
 
-    if (interaction.commandName !== "leave") return;
+if (interaction.commandName === "postleaveinstructions") {
+  if (
+    !interaction.member.roles.cache.some((r) =>
+      allowedRoles.includes(r.id)
+    )
+  ) {
+    return interaction.reply({
+      content: "❌ You don't have permission to use this command.",
+      ephemeral: true,
+    });
+  }
 
-        if (interaction.commandName === "postleaveinstructions") {
-      if (
-        !interaction.member.roles.cache.some((r) =>
-          allowedRoles.includes(r.id)
-        )
-      ) {
-        return interaction.reply({
-          content: "❌ You don't have permission to use this command.",
-          ephemeral: true,
-        });
-      }
+  const channel = await findChannel(interaction.guild, {
+    id: LEAVE_REQUESTS_CHANNEL_ID,
+    name: LEAVE_REQUESTS_CHANNEL_NAME,
+    normalizedTarget: "leave-requests",
+  });
 
-      const channel = await findChannel(interaction.guild, {
-        id: LEAVE_REQUESTS_CHANNEL_ID,
-        name: LEAVE_REQUESTS_CHANNEL_NAME,
-        normalizedTarget: "leave-requests",
-      });
+  if (!channel) {
+    return interaction.reply({
+      content: "❌ Leave requests channel not found.",
+      ephemeral: true,
+    });
+  }
 
-      if (!channel) {
-        return interaction.reply({
-          content: "❌ Leave requests channel not found.",
-          ephemeral: true,
-        });
-      }
-
-      await channel.send(`# **how to request leave:**
+  await channel.send(`# **how to request leave:**
 go to **<#1467626250196746565>** and type **/leave**. fill the form and submit. management will approve or decline it. you will get a DM once reviewed.
 
 ## **date format:**
@@ -322,16 +320,19 @@ when approved, <@&1416542249667264616> will be pinged in **<#1467626250196746565
 
 # Any requests not following this format will be DECLINED`);
 
-      return interaction.reply({
-        content: "✅ Instructions posted.",
-        ephemeral: true,
-      });
-    }
+  return interaction.reply({
+    content: "✅ Instructions posted.",
+    ephemeral: true,
+  });
+}
+
+if (interaction.commandName !== "leave") return;
 
     const modal = new ModalBuilder()
       .setCustomId("leaveModal")
       .setTitle("Submit Leave Request");
 
+    
     const nameInput = new TextInputBuilder()
       .setCustomId("name")
       .setLabel("Your Name")
