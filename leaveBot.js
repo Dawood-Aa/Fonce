@@ -277,6 +277,57 @@ module.exports = (client, admin) => {
 
     if (interaction.commandName !== "leave") return;
 
+        if (interaction.commandName === "postleaveinstructions") {
+      if (
+        !interaction.member.roles.cache.some((r) =>
+          allowedRoles.includes(r.id)
+        )
+      ) {
+        return interaction.reply({
+          content: "❌ You don't have permission to use this command.",
+          ephemeral: true,
+        });
+      }
+
+      const channel = await findChannel(interaction.guild, {
+        id: LEAVE_REQUESTS_CHANNEL_ID,
+        name: LEAVE_REQUESTS_CHANNEL_NAME,
+        normalizedTarget: "leave-requests",
+      });
+
+      if (!channel) {
+        return interaction.reply({
+          content: "❌ Leave requests channel not found.",
+          ephemeral: true,
+        });
+      }
+
+      await channel.send(`# **how to request leave:**
+go to **<#1467626250196746565>** and type **/leave**. fill the form and submit. management will approve or decline it. you will get a DM once reviewed.
+
+## **date format:**
+use **MM/DD/YYYY** (example: \`02/15/2026\`).
+multiple dates can be separated with commas.
+
+## **shift format (important):**
+you MUST include a start time so reminders work. examples:
+\`9am day shift\`
+\`2pm to 10pm\`
+\`14:00 shift\`
+\`night shift, starts 7pm\`
+for partial cover: \`2pm to 6pm cover\`
+
+## **claiming shifts:**
+when approved, <@&1416542249667264616> will be pinged in **<#1467626250196746565>**. click **Claim** to take the shift.
+
+# Any requests not following this format will be DECLINED`);
+
+      return interaction.reply({
+        content: "✅ Instructions posted.",
+        ephemeral: true,
+      });
+    }
+
     const modal = new ModalBuilder()
       .setCustomId("leaveModal")
       .setTitle("Submit Leave Request");
