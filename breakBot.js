@@ -18,12 +18,14 @@ const EST_TZ = "America/New_York";
 const BREAK_LENGTH_MINUTES = 30;
 
 // Disallowed break-start windows, in EST, expressed as [startMinutes, endMinutes)
-// on a 0-1440 minute-of-day scale. Overnight ranges are handled separately below.
+// on a 0-1440 minute-of-day scale.
 const BLOCKED_WINDOWS = [
   { label: "10:00 AM - 11:00 AM EST", start: 10 * 60, end: 11 * 60 },
   { label: "2:00 AM - 3:00 AM EST", start: 2 * 60, end: 3 * 60 },
   { label: "6:00 PM - 7:00 PM EST", start: 18 * 60, end: 19 * 60 },
 ];
+// Overnight window: 6:00 PM - 7:00 AM EST (wraps past midnight)
+const OVERNIGHT_BLOCK = { startMin: 18 * 60, endMin: 7 * 60, label: "6:00 PM - 7:00 AM EST" };
 
 // In-memory store of pending break requests, keyed by the approval message ID
 const pendingBreaks = new Map();
@@ -75,11 +77,6 @@ function getBlockedWindowLabel(startMinutes) {
     if (startMinutes >= window.start && startMinutes < window.end) {
       return window.label;
     }
-  }
-
-  // Overnight wraparound window (6pm - 7am)
-  if (startMinutes >= OVERNIGHT_BLOCK.startMin || startMinutes < OVERNIGHT_BLOCK.endMin) {
-    return OVERNIGHT_BLOCK.label;
   }
 
   return null;
