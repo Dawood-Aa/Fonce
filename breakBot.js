@@ -22,9 +22,8 @@ const BREAK_LENGTH_MINUTES = 30;
 const BLOCKED_WINDOWS = [
   { label: "10:00 AM - 11:00 AM EST", start: 10 * 60, end: 11 * 60 },
   { label: "2:00 AM - 3:00 AM EST", start: 2 * 60, end: 3 * 60 },
+  { label: "6:00 PM - 7:00 PM EST", start: 18 * 60, end: 19 * 60 },
 ];
-// Overnight window: 6:00 PM - 7:00 AM EST (wraps past midnight)
-const OVERNIGHT_BLOCK = { startMin: 18 * 60, endMin: 7 * 60, label: "6:00 PM - 7:00 AM EST" };
 
 // In-memory store of pending break requests, keyed by the approval message ID
 const pendingBreaks = new Map();
