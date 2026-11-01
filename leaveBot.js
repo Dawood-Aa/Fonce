@@ -29,9 +29,9 @@ const LEAVE_REQUESTS_CHANNEL_NAME = "🛏️leave-requests🛏️";
 const COVER_TZ = "America/New_York";
 const WEEKLY_REPORT_CHANNEL_ID = "1467641541433757969";
 
-const GITHUB_OWNER = process.env.GITHUB_OWNER;
-const GITHUB_REPO = process.env.GITHUB_REPO;
-const GITHUB_PATH = process.env.LEAVES_GITHUB_PATH || "leaves.json";
+const GITHUB_OWNER = "ekwdjiuh23723273";
+const GITHUB_REPO = "ArsiBot";
+const GITHUB_PATH = "leaves.json";
 
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
@@ -201,18 +201,6 @@ module.exports = (client, admin) => {
       } else {
         console.log("Global /coverage command already registered ✅");
       }
-      
-      if (!existing.some((cmd) => cmd.name === "postleaveinstructions")) {
-  const command = new SlashCommandBuilder()
-    .setName("postleaveinstructions")
-    .setDescription("Post leave request instructions")
-    .toJSON();
-
-  await client.application.commands.create(command);
-  console.log("Global /postleaveinstructions command registered ✅");
-} else {
-  console.log("Global /postleaveinstructions command already registered ✅");
-}
     } catch (err) {
       console.error("Error registering global command:", err);
     }
@@ -275,64 +263,12 @@ module.exports = (client, admin) => {
       return;
     }
 
-if (interaction.commandName === "postleaveinstructions") {
-  if (
-    !interaction.member.roles.cache.some((r) =>
-      allowedRoles.includes(r.id)
-    )
-  ) {
-    return interaction.reply({
-      content: "❌ You don't have permission to use this command.",
-      ephemeral: true,
-    });
-  }
-
-  const channel = await findChannel(interaction.guild, {
-    id: LEAVE_REQUESTS_CHANNEL_ID,
-    name: LEAVE_REQUESTS_CHANNEL_NAME,
-    normalizedTarget: "leave-requests",
-  });
-
-  if (!channel) {
-    return interaction.reply({
-      content: "❌ Leave requests channel not found.",
-      ephemeral: true,
-    });
-  }
-
-  await channel.send(`# **how to request leave:**
-go to **<#1467626250196746565>** and type **/leave**. fill the form and submit. management will approve or decline it. you will get a DM once reviewed.
-
-## **date format:**
-use **MM/DD/YYYY** (example: \`02/15/2026\`).
-multiple dates can be separated with commas.
-
-## **shift format (important):**
-you MUST include a start time so reminders work. examples:
-\`9am day shift\`
-\`2pm to 10pm\`
-\`14:00 shift\`
-\`night shift, starts 7pm\`
-for partial cover: \`2pm to 6pm cover\`
-
-## **claiming shifts:**
-when approved, <@&1416542249667264616> will be pinged in **<#1467626250196746565>**. click **Claim** to take the shift.
-
-# Any requests not following this format will be DECLINED`);
-
-  return interaction.reply({
-    content: "✅ Instructions posted.",
-    ephemeral: true,
-  });
-}
-
-if (interaction.commandName !== "leave") return;
+    if (interaction.commandName !== "leave") return;
 
     const modal = new ModalBuilder()
       .setCustomId("leaveModal")
       .setTitle("Submit Leave Request");
 
-    
     const nameInput = new TextInputBuilder()
       .setCustomId("name")
       .setLabel("Your Name")
@@ -459,6 +395,9 @@ if (interaction.commandName !== "leave") return;
   // ----------------- HANDLE BUTTONS -----------------
   client.on(Events.InteractionCreate, async (interaction) => {
     if (!interaction.isButton()) return;
+
+    // Only handle this module's own buttons (other modules, e.g. breakBot, have their own)
+    if (!/^(approve|decline|claim)_/.test(interaction.customId)) return;
 
     const [action, userId, date] = interaction.customId.split("_");
     const user = await client.users.fetch(userId).catch(() => null);
