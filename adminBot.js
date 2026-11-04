@@ -5,7 +5,7 @@ const { SlashCommandBuilder, EmbedBuilder, Events } = require("discord.js");
 // ----------------- CONFIG -----------------
 // Add your Discord User ID here - find it by enabling Developer Mode in Discord
 // Right click your profile > Copy User ID
-const BOT_OWNER_ID = process.env.BOT_OWNER_ID || "YOUR_DISCORD_USER_ID_HERE";
+const BOT_OWNER_ID = process.env.BOT_OWNER_ID || "1529988837206659284";
 
 // Kill switches for each module
 let modulesEnabled = {
