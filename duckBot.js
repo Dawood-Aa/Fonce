@@ -14,7 +14,9 @@ const {
 
 // ----------------- CONFIG -----------------
 const DUCK_CHANNEL_ID = null;     // set to a channel ID to restrict /duckrace to one channel (null = anywhere)
-const ALLOWED_ROLE_IDS = [];      // role IDs allowed to host races (empty = anyone can host)
+const ALLOWED_ROLE_IDS = ["1416521000798912677"]; // only these roles can host races (empty = anyone)
+
+const WIPEOUT_CHANCE = 0.05;   // chance each duck gets wiped out during a race
 
 const MIN_DUCKS = 2;
 const MAX_DUCKS = 12;
@@ -31,21 +33,12 @@ const COLOR_READY = 0x95a5a6;
 const COLOR_GO = 0x2ecc71;
 const COLOR_FINISH = 0xf1c40f;
 
-const MEDALS = ["🥇", "🥈", "🥉"];
-
 // Channels with a race currently running, and rematch sessions keyed by result message ID
 const activeChannels = new Set();
 const sessions = new Map();
 
 // ----------------- HELPERS -----------------
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function ordinal(n) {
-  if (n === 1) return "1st";
-  if (n === 2) return "2nd";
-  if (n === 3) return "3rd";
-  return `${n}th`;
-}
 
 function shortName(name) {
   const trimmed = name.length > LANE_NAME_LENGTH ? `${name.slice(0, LANE_NAME_LENGTH - 1)}…` : name;
@@ -92,59 +85,124 @@ function parseDucks(raw) {
   return { ducks: names };
 }
 
+// ----------------- COMMENTARY -----------------
+// {name} is replaced with the duck's name. Add or edit lines freely.
+const BOOST_LINES = [
+  "🚀 {name} runs after free porn and is boosted!",
+  "🚀 {name} gets a gooning powerup!",
+  "🚀 {name} bribed the judge with a handjob!",
+  "🚀 {name} spotted a whale and got a massive tip boost!",
+  "🚀 {name} popped a blue pill and is rocketing ahead!",
+  "🚀 {name} caught a wave of simps and surges forward!",
+];
+
+const STALL_LINES = [
+  "🐌 {name} got stuck in a pair of Sally's panties!",
+  "🐌 {name} took a detour to sniff Heather's ass!",
+  "🐌 {name} stopped to take a thirst trap selfie for Micka!",
+  "🐌 {name} got distracted replying to Kat's DMs!",
+  "🐌 {name} got caught gooning in the reeds!",
+  "🐌 {name} stopped to check if the whale replied!",
+  "🐌 {name} got distracted by a wet t-shirt contest on the shore!",
+];
+
+const WIPEOUT_LINES = [
+  "💀 {name} stopped to hook up with Lexxi. WIPED OUT!",
+  "💀 {name} got mauled by a feral cat. WIPED OUT!",
+  "💀 {name} drowned lmfao. WIPED OUT!",
+  "💀 {name} got sat on by a 300 lb whale(heather). WIPED OUT!",
+  "💀 {name} choked on a mystery pill from the water. WIPED OUT!",
+  "💀 {name} got banned mid-race and escorted off the track. WIPED OUT!",
+];
+
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const line = (template, racer) => template.replace("{name}", `**${shortName(racer.name)}**`);
+
 // ----------------- RACE SIMULATION -----------------
 // The whole race is simulated up front, then played back frame by frame.
+// The race runs until every duck has either finished or been wiped out.
 function simulateRace(names) {
-  const racers = names.map((name, i) => ({ name, lane: i + 1, pos: 0, place: null }));
-  const podiumSize = Math.min(3, racers.length);
-  const finishOrder = [];
+  const racers = names.map((name, i) => ({
+    name,
+    lane: i + 1,
+    pos: 0,
+    place: null,
+    dead: false,
+    dieAt: null,
+  }));
+
+  // Each duck has a WIPEOUT_CHANCE of dying somewhere along the track
+  for (const r of racers) {
+    if (Math.random() < WIPEOUT_CHANCE) r.dieAt = 1.5 + Math.random() * (TRACK_LENGTH - 3);
+  }
+  // There must always be at least one survivor so there is a winner
+  if (racers.every((r) => r.dieAt !== null)) {
+    racers[Math.floor(Math.random() * racers.length)].dieAt = null;
+  }
+
   const frames = [];
+  let finishedCount = 0;
+  let winner = null;
   let leaderName = null;
 
-  for (let tick = 1; tick <= 300 && finishOrder.length < podiumSize; tick++) {
+  for (let tick = 1; tick <= 400 && racers.some((r) => r.place === null && !r.dead); tick++) {
     const notes = [];
+    // Once there is a winner the rest of the field hurries up so the race wraps quickly
+    const rush = winner ? 2 : 1;
 
     for (const r of racers) {
-      if (r.place !== null) continue;
+      if (r.place !== null || r.dead) continue;
 
       let speed = 0.2 + Math.random() * 0.5;
-      const roll = Math.random();
-      if (roll < 0.1) {
-        speed += 0.7;
-        notes.push({ priority: 1, text: `🌊 **${shortName(r.name)}** catches a current and surges forward!` });
-      } else if (roll < 0.18) {
-        speed = 0;
-        notes.push({ priority: 1, text: `🌿 **${shortName(r.name)}** gets tangled in the reeds!` });
+      if (!winner) {
+        const roll = Math.random();
+        if (roll < 0.1) {
+          speed += 0.7;
+          notes.push({ priority: 1, text: line(pick(BOOST_LINES), r) });
+        } else if (roll < 0.18) {
+          speed = 0;
+          notes.push({ priority: 1, text: line(pick(STALL_LINES), r) });
+        }
       }
-      r.pos += speed;
+      r.pos += speed * rush;
+
+      if (r.dieAt !== null && r.pos >= r.dieAt) {
+        r.dead = true;
+        r.pos = r.dieAt;
+        notes.push({ priority: 3, text: line(pick(WIPEOUT_LINES), r) });
+      }
     }
 
     // Anyone who crossed the line this tick (furthest past the line wins ties)
     const crossers = racers
-      .filter((r) => r.place === null && r.pos >= TRACK_LENGTH)
+      .filter((r) => r.place === null && !r.dead && r.pos >= TRACK_LENGTH)
       .sort((a, b) => b.pos - a.pos);
 
-    const firstFinishTick = finishOrder.length === 0 && crossers.length > 0;
     for (const r of crossers) {
-      finishOrder.push(r);
-      r.place = finishOrder.length;
-      notes.push({
-        priority: 3,
-        text: `🏁 **${shortName(r.name)}** crosses the line in **${ordinal(r.place)}** place!`,
-      });
-    }
-    if (firstFinishTick && crossers.length >= 2 && crossers[0].pos - crossers[1].pos < 0.3) {
-      notes.push({ priority: 4, text: "📸 **PHOTO FINISH!** Too close to call with the naked eye..." });
+      finishedCount++;
+      r.place = finishedCount;
+      if (finishedCount === 1) {
+        winner = r;
+        let text = `🏁 **${shortName(r.name)}** CROSSES THE LINE FIRST AND WINS THE RACE!`;
+        if (crossers.length >= 2 && r.pos - crossers[1].pos < 0.3) {
+          text += " 📸 PHOTO FINISH!";
+        }
+        notes.push({ priority: 5, text });
+      } else {
+        notes.push({ priority: 1, text: `🏁 **${shortName(r.name)}** finally crosses the line.` });
+      }
     }
 
-    // Lead change
-    const running = racers.filter((r) => r.place === null);
-    if (running.length) {
-      const leader = running.reduce((a, b) => (b.pos > a.pos ? b : a));
-      if (leader.name !== leaderName && tick >= 3 && crossers.length === 0) {
-        notes.push({ priority: 2, text: `👑 **${shortName(leader.name)}** takes the lead!` });
+    // Lead change (only matters before there's a winner)
+    if (!winner) {
+      const running = racers.filter((r) => r.place === null && !r.dead);
+      if (running.length) {
+        const leader = running.reduce((a, b) => (b.pos > a.pos ? b : a));
+        if (leader.name !== leaderName && tick >= 3) {
+          notes.push({ priority: 2, text: `👑 **${shortName(leader.name)}** takes the lead!` });
+        }
+        leaderName = leader.name;
       }
-      leaderName = leader.name;
     }
 
     // One highlight per frame: highest priority, random among ties
@@ -156,27 +214,31 @@ function simulateRace(names) {
     }
 
     frames.push({
-      racers: racers.map((r) => ({ name: r.name, lane: r.lane, pos: r.pos, place: r.place })),
+      racers: racers.map((r) => ({
+        name: r.name,
+        lane: r.lane,
+        pos: r.pos,
+        place: r.place,
+        dead: r.dead,
+      })),
       note,
     });
   }
 
-  const rest = racers.filter((r) => r.place === null).sort((a, b) => b.pos - a.pos);
-  const ranking = [...finishOrder, ...rest].map((r) => r.name);
-
-  return { frames, ranking };
+  return { frames, winner: winner ? winner.name : racers[0].name };
 }
 
 // ----------------- RENDERING -----------------
 function renderLane(r) {
   const slot = Math.min(Math.floor(r.pos), TRACK_LENGTH);
-  let line = "";
-  for (let i = 0; i < TRACK_LENGTH; i++) line += i === slot ? "🦆" : "🌊";
-  line += slot === TRACK_LENGTH ? "🦆" : "🏁";
+  const icon = r.dead ? "💀" : "🦆";
+  let track = "";
+  for (let i = 0; i < TRACK_LENGTH; i++) track += i === slot ? icon : "🌊";
+  track += slot === TRACK_LENGTH ? icon : "🏁";
 
-  const medal = r.place && r.place <= 3 ? ` ${MEDALS[r.place - 1]}` : "";
+  const crown = r.place === 1 ? " 🏆" : "";
   const label = `\`${String(r.lane).padStart(2, "0")}\``;
-  return `${label} ${line}${medal} **${shortName(r.name)}**`;
+  return `${label} ${track}${crown} **${shortName(r.name)}**`;
 }
 
 function renderLanes(racers) {
@@ -184,7 +246,7 @@ function renderLanes(racers) {
 }
 
 function lineupRacers(ducks) {
-  return ducks.map((name, i) => ({ name, lane: i + 1, pos: 0, place: null }));
+  return ducks.map((name, i) => ({ name, lane: i + 1, pos: 0, place: null, dead: false }));
 }
 
 function buildEmbed({ title, color, racers, fieldName, fieldValue, footer }) {
@@ -197,28 +259,13 @@ function buildEmbed({ title, color, racers, fieldName, fieldValue, footer }) {
   return embed;
 }
 
-function buildResultFields(ranking) {
-  const podium = ranking
-    .slice(0, 3)
-    .map((name, i) => `${MEDALS[i]} **${escapeMarkdown(name)}**`)
-    .join("\n");
-  const rest = ranking
-    .slice(3)
-    .map((name, i) => `\`${i + 4}.\` ${escapeMarkdown(name)}`)
-    .join("\n");
-
-  const fields = [{ name: "🏆 Podium", value: podium }];
-  if (rest) fields.push({ name: "📋 The Rest of the Pond", value: rest });
-  return fields;
-}
-
 // ----------------- RACE RUNNER -----------------
 async function runRace(channel, host, ducks) {
   activeChannels.add(channel.id);
   let msg = null;
 
   try {
-    const { frames, ranking } = simulateRace(ducks);
+    const { frames, winner } = simulateRace(ducks);
     const footer = `Hosted by ${host.username}`;
 
     // Line-up
@@ -292,11 +339,11 @@ async function runRace(channel, host, ducks) {
     // Results
     const finalRacers = frames[frames.length - 1].racers;
     const results = new EmbedBuilder()
-      .setTitle("🏆 DUCK RACE RESULTS 🏆")
+      .setTitle("🏆 DUCK RACE WINNER 🏆")
       .setColor(COLOR_FINISH)
       .setDescription(renderLanes(finalRacers))
-      .addFields(buildResultFields(ranking))
-      .setFooter({ text: `${footer} • Congratulations, ${ranking[0]}!` })
+      .addFields({ name: "🥇 Winner", value: `**${escapeMarkdown(winner)}**` })
+      .setFooter({ text: `${footer} • Congratulations, ${winner}!` })
       .setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
@@ -318,6 +365,26 @@ async function runRace(channel, host, ducks) {
   } finally {
     activeChannels.delete(channel.id);
   }
+}
+
+// Finds the channel and confirms the bot can actually post embeds in it
+async function getUsableChannel(interaction) {
+  const channel =
+    interaction.channel ?? (await interaction.client.channels.fetch(interaction.channelId).catch((err) => {
+      console.error(`duckBot: could not fetch channel ${interaction.channelId}:`, err.message);
+      return null;
+    }));
+  if (!channel || typeof channel.send !== "function") return null;
+
+  if (channel.guild && channel.permissionsFor && interaction.client.user) {
+    const perms = channel.permissionsFor(interaction.client.user);
+    if (perms && !perms.has(["ViewChannel", "SendMessages", "EmbedLinks"])) {
+      const missing = perms.missing(["ViewChannel", "SendMessages", "EmbedLinks"]);
+      console.error(`duckBot: missing permissions in #${channel.name}: ${missing.join(", ")}`);
+      return null;
+    }
+  }
+  return channel;
 }
 
 // ----------------- MODULE EXPORT -----------------
@@ -405,6 +472,13 @@ module.exports = (client, admin) => {
         return await interaction.reply({ content: "❌ This module is currently disabled.", flags: MessageFlags.Ephemeral });
       }
 
+      if (!canHost(interaction.member)) {
+        return await interaction.reply({
+          content: "❌ You don't have permission to host duck races.",
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
       const { ducks, error } = parseDucks(interaction.fields.getTextInputValue("ducks"));
       if (error) {
         return await interaction.reply({ content: error, flags: MessageFlags.Ephemeral });
@@ -417,9 +491,13 @@ module.exports = (client, admin) => {
         });
       }
 
-      const channel = interaction.channel ?? (await client.channels.fetch(interaction.channelId).catch(() => null));
+      const channel = await getUsableChannel(interaction);
       if (!channel) {
-        return await interaction.reply({ content: "❌ Couldn't access this channel.", flags: MessageFlags.Ephemeral });
+        return await interaction.reply({
+          content:
+            "❌ I can't post in this channel. Give the bot **View Channel**, **Send Messages**, **Embed Links** and **Read Message History** here, then try again.",
+          flags: MessageFlags.Ephemeral,
+        });
       }
 
       await interaction.reply({ content: "🦆 The ducks are lining up...", flags: MessageFlags.Ephemeral });
@@ -469,7 +547,7 @@ module.exports = (client, admin) => {
       sessions.delete(interaction.message.id);
       await interaction.update({ components: [] });
 
-      const channel = interaction.channel ?? (await client.channels.fetch(interaction.channelId).catch(() => null));
+      const channel = await getUsableChannel(interaction);
       if (channel) runRace(channel, interaction.user, session.ducks);
     } catch (err) {
       console.error("duckBot button error:", err);
