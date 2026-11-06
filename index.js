@@ -13,6 +13,7 @@ require("./leaveBot")(client, admin);
 require("./raffleBot")(client, admin);
 require("./qaLeavesBot.js")(client, admin);
 require("./breakBot.js")(client, admin);
+require("./duckBot")(client, admin);
 
 
 client.login(process.env.BOT_TOKEN);
