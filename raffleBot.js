@@ -9,6 +9,7 @@ const {
 	TextInputStyle,
 	ActionRowBuilder,
 	EmbedBuilder,
+	AttachmentBuilder,
 	Events,
 } = require("discord.js");
 
@@ -151,6 +152,33 @@ async function findChannel(guild, { id, name, normalizedTarget }) {
 	}
 
 	return null;
+}
+
+// Builds the wheel-spin list: each chatter's name repeated once per ticket, grouped together.
+// Returns the full line list plus message-sized chunks (kept under Discord's 2000 char limit).
+function buildWheelEntries(summary) {
+	const lines = [];
+	for (const [name, info] of summary.entries()) {
+		const clean = String(name).replace(/`/g, "'").trim();
+		const count = Math.floor(info.tickets);
+		for (let i = 0; i < count; i++) lines.push(clean);
+	}
+
+	const chunks = [];
+	let current = [];
+	let length = 0;
+	for (const line of lines) {
+		if (length + line.length + 1 > 1900) {
+			chunks.push(current.join("\n"));
+			current = [];
+			length = 0;
+		}
+		current.push(line);
+		length += line.length + 1;
+	}
+	if (current.length) chunks.push(current.join("\n"));
+
+	return { lines, chunks };
 }
 
 // ----------------- MODULE EXPORT -----------------
@@ -456,6 +484,25 @@ module.exports = (client, admin) => {
 					.setTimestamp();
 
 				await raffleChannel.send({ embeds: [embed] });
+			}
+
+			// Wheel-spin entries: one line per ticket, so the list can be pasted into a wheel
+			const { lines, chunks } = buildWheelEntries(summary);
+			if (lines.length > 0) {
+				const file = new AttachmentBuilder(Buffer.from(lines.join("\n"), "utf8"), {
+					name: `raffle-entries-${targetYearMonth}.txt`,
+				});
+				await raffleChannel.send({
+					content: `🎡 **Wheel Spin Entries - ${formatMonthYear(year, month)}** (${lines.length} total tickets)`,
+					files: [file],
+				});
+
+				// Copyable text blocks too, unless the list is huge (the file covers that case)
+				if (chunks.length <= 3) {
+					for (const chunk of chunks) {
+						await raffleChannel.send("```\n" + chunk + "\n```");
+					}
+				}
 			}
 		},
 		{ timezone: EST_TZ }
