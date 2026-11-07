@@ -207,10 +207,12 @@ function simulateRace(names) {
 
     // One highlight per frame: highest priority, random among ties
     let note = null;
+    let big = false;
     if (notes.length) {
       const top = Math.max(...notes.map((n) => n.priority));
       const pool = notes.filter((n) => n.priority === top);
       note = pool[Math.floor(Math.random() * pool.length)].text;
+      big = top >= 3; // wipeouts and the winner get the biggest text
     }
 
     frames.push({
@@ -222,6 +224,7 @@ function simulateRace(names) {
         dead: r.dead,
       })),
       note,
+      big,
     });
   }
 
@@ -249,12 +252,18 @@ function lineupRacers(ducks) {
   return ducks.map((name, i) => ({ name, lane: i + 1, pos: 0, place: null, dead: false }));
 }
 
-function buildEmbed({ title, color, racers, fieldName, fieldValue, footer }) {
+// Commentary is the star: a big headline on top, recent moments as smaller lines, lanes underneath.
+// size: "#" (huge), "##" (large)
+function buildEmbed({ title, color, racers, headline, size = "##", history = [], footer }) {
+  const parts = [`${size} ${headline}`];
+  if (history.length) parts.push(history.map((h) => `-# ${h}`).join("\n"));
+  parts.push("");
+  parts.push(renderLanes(racers));
+
   const embed = new EmbedBuilder()
     .setTitle(title)
     .setColor(color)
-    .setDescription(renderLanes(racers));
-  if (fieldName) embed.addFields({ name: fieldName, value: fieldValue || "…" });
+    .setDescription(parts.join("\n"));
   if (footer) embed.setFooter({ text: footer });
   return embed;
 }
@@ -267,16 +276,17 @@ async function runRace(channel, host, ducks) {
   try {
     const { frames, winner } = simulateRace(ducks);
     const footer = `Hosted by ${host.username}`;
+    const TITLE = "🦆 DUCK RACE 🦆";
 
     // Line-up
     msg = await channel.send({
       embeds: [
         buildEmbed({
-          title: "🦆 DUCK RACE 🦆",
+          title: TITLE,
           color: COLOR_READY,
           racers: lineupRacers(ducks),
-          fieldName: "🚦 Ducks, take your positions!",
-          fieldValue: `**${ducks.length}** ducks are on the starting line...`,
+          headline: "🚦 Ducks, take your positions!",
+          history: [`${ducks.length} ducks are on the starting line...`],
           footer,
         }),
       ],
@@ -288,11 +298,11 @@ async function runRace(channel, host, ducks) {
       await msg.edit({
         embeds: [
           buildEmbed({
-            title: "🦆 DUCK RACE 🦆",
+            title: TITLE,
             color: COLOR_READY,
             racers: lineupRacers(ducks),
-            fieldName: "🚦 Get ready!",
-            fieldValue: `**${step}**`,
+            headline: `🚦 **${step}**`,
+            size: "#",
             footer,
           }),
         ],
@@ -301,15 +311,17 @@ async function runRace(channel, host, ducks) {
     }
 
     // Race
-    const commentary = ["🔔 **QUACK!** And they're off!"];
+    const history = [];
+    let headline = "🔔 **QUACK!** And they're off!";
+    let size = "#";
     await msg.edit({
       embeds: [
         buildEmbed({
-          title: "🦆 DUCK RACE 🦆",
+          title: TITLE,
           color: COLOR_GO,
           racers: lineupRacers(ducks),
-          fieldName: "📣 Live Commentary",
-          fieldValue: commentary.join("\n"),
+          headline,
+          size,
           footer,
         }),
       ],
@@ -318,17 +330,20 @@ async function runRace(channel, host, ducks) {
 
     for (const frame of frames) {
       if (frame.note) {
-        commentary.push(frame.note);
-        if (commentary.length > 3) commentary.shift();
+        history.unshift(headline); // previous headline slides into the smaller lines
+        if (history.length > 2) history.pop();
+        headline = frame.note;
+        size = frame.big ? "#" : "##";
       }
       await msg.edit({
         embeds: [
           buildEmbed({
-            title: "🦆 DUCK RACE 🦆",
+            title: TITLE,
             color: COLOR_RACE,
             racers: frame.racers,
-            fieldName: "📣 Live Commentary",
-            fieldValue: commentary.join("\n"),
+            headline,
+            size,
+            history,
             footer,
           }),
         ],
@@ -338,13 +353,15 @@ async function runRace(channel, host, ducks) {
 
     // Results
     const finalRacers = frames[frames.length - 1].racers;
-    const results = new EmbedBuilder()
-      .setTitle("🏆 DUCK RACE WINNER 🏆")
-      .setColor(COLOR_FINISH)
-      .setDescription(renderLanes(finalRacers))
-      .addFields({ name: "🥇 Winner", value: `**${escapeMarkdown(winner)}**` })
-      .setFooter({ text: `${footer} • Congratulations, ${winner}!` })
-      .setTimestamp();
+    const results = buildEmbed({
+      title: "🏆 DUCK RACE WINNER 🏆",
+      color: COLOR_FINISH,
+      racers: finalRacers,
+      headline: `🏆 **${escapeMarkdown(winner)}** WINS THE RACE! 🏆`,
+      size: "#",
+      history: history.slice(0, 2),
+      footer: `${footer} • Congratulations, ${winner}!`,
+    }).setTimestamp();
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId("duck_rematch").setLabel("Rematch").setEmoji("🔁").setStyle(ButtonStyle.Primary),
