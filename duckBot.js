@@ -88,33 +88,32 @@ function parseDucks(raw) {
 // ----------------- COMMENTARY -----------------
 // {name} is replaced with the duck's name. Add or edit lines freely.
 const BOOST_LINES = [
-  ":rocket: {name} runs after free porn and is boosted!",
-  ":rocket: {name} gets a gooning powerup!",
-  ":rocket: {name} bribed the judge with a handjob!",
-  ":rocket: {name} spotted a whale and got a massive tip boost!",
-  ":rocket: {name} popped a blue pill and is rocketing ahead!",
-  ":rocket: {name} caught a wave of simps and surges forward!",
+  "🚀 {name} runs after free porn and is boosted!",
+  "🚀 {name} gets a gooning powerup!",
+  "🚀 {name} bribed the judge with a handjob!",
+  "🚀 {name} spotted a whale and got a massive tip boost!",
+  "🚀 {name} popped a blue pill and is rocketing ahead!",
+  "🚀 {name} caught a wave of simps and surges forward!",
 ];
 
 const STALL_LINES = [
-  ":snail: {name} got stuck in a pair of Sally's panties!",
-  ":snail: {name} took a detour to sniff Heather's ass!",
-  ":snail: {name} stopped to take a thirst trap selfie for Micka!",
-  ":snail: {name} got distracted replying to Kat's DMs!",
-  ":snail: {name} got caught gooning in the reeds!",
-  ":snail: {name} stopped to check if the whale replied!",
-  ":snail: {name} got distracted by a wet t-shirt contest on the shore!",
+  "🐌 {name} got stuck in a pair of panties floating by!",
+  "🐌 {name} took a detour to sniff another duck's ass!",
+  "🐌 {name} stopped to take a thirst trap selfie!",
+  "🐌 {name} got distracted refreshing a fan's DMs!",
+  "🐌 {name} got caught gooning in the reeds!",
+  "🐌 {name} stopped to check if the whale replied!",
+  "🐌 {name} got distracted by a wet t-shirt contest on the shore!",
 ];
 
 const WIPEOUT_LINES = [
-  ":skull: {name} stopped to hook up with Lexxi. WIPED OUT!",
-  ":skull: {name} got mauled by a feral cat. WIPED OUT!",
-  ":skull: {name} drowned lmfao. WIPED OUT!",
-  ":skull: {name} got sat on by a 300 lb whale(heather). WIPED OUT!",
-  ":skull: {name} choked on a mystery pill from the water. WIPED OUT!",
-  ":skull: {name} got banned mid-race and escorted off the track. WIPED OUT!",
+  "💀 {name} stopped to hook up with a random swan. WIPED OUT!",
+  "💀 {name} got mauled by a feral cat. WIPED OUT!",
+  "💀 {name} drowned lmfao. WIPED OUT!",
+  "💀 {name} got sat on by a 300 lb whale. WIPED OUT!",
+  "💀 {name} choked on a mystery pill from the water. WIPED OUT!",
+  "💀 {name} got banned mid-race and escorted off the track. WIPED OUT!",
 ];
-
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const line = (template, racer) => template.replace("{name}", `**${shortName(racer.name)}**`);
@@ -557,7 +556,7 @@ module.exports = (client, admin) => {
         });
       }
 
-      if (interaction.user.id !== session.hostId && !canHost(interaction.member)) {
+      if (interaction.user.id !== session.hostId) {
         return await interaction.reply({
           content: "❌ Only the host can start another race.",
           flags: MessageFlags.Ephemeral,
