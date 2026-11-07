@@ -14,7 +14,7 @@ const {
 
 // ----------------- CONFIG -----------------
 const DUCK_CHANNEL_ID = null;     // set to a channel ID to restrict /duckrace to one channel (null = anywhere)
-const ALLOWED_ROLE_IDS = null; //["1416521000798912677"]; only these roles can host races (empty = anyone)
+const ALLOWED_ROLE_IDS = [];      // role IDs allowed to host races (empty = anyone can host)
 
 const WIPEOUT_CHANCE = 0.05;   // chance each duck gets wiped out during a race
 
@@ -88,32 +88,33 @@ function parseDucks(raw) {
 // ----------------- COMMENTARY -----------------
 // {name} is replaced with the duck's name. Add or edit lines freely.
 const BOOST_LINES = [
-  "🚀 {name} runs after free porn and is boosted!",
-  "🚀 {name} gets a gooning powerup!",
-  "🚀 {name} bribed the judge with a handjob!",
-  "🚀 {name} spotted a whale and got a massive tip boost!",
-  "🚀 {name} popped a blue pill and is rocketing ahead!",
-  "🚀 {name} caught a wave of simps and surges forward!",
+  ":rocket: {name} runs after free porn and is boosted!",
+  ":rocket: {name} gets a gooning powerup!",
+  ":rocket: {name} bribed the judge with a handjob!",
+  ":rocket: {name} spotted a whale and got a massive tip boost!",
+  ":rocket: {name} popped a blue pill and is rocketing ahead!",
+  ":rocket: {name} caught a wave of simps and surges forward!",
 ];
 
 const STALL_LINES = [
-  "🐌 {name} got stuck in a pair of Sally's panties!",
-  "🐌 {name} took a detour to sniff Heather's ass!",
-  "🐌 {name} stopped to take a thirst trap selfie for Micka!",
-  "🐌 {name} got distracted replying to Kat's DMs!",
-  "🐌 {name} got caught gooning in the reeds!",
-  "🐌 {name} stopped to check if the whale replied!",
-  "🐌 {name} got distracted by a wet t-shirt contest on the shore!",
+  ":snail: {name} got stuck in a pair of Sally's panties!",
+  ":snail: {name} took a detour to sniff Heather's ass!",
+  ":snail: {name} stopped to take a thirst trap selfie for Micka!",
+  ":snail: {name} got distracted replying to Kat's DMs!",
+  ":snail: {name} got caught gooning in the reeds!",
+  ":snail: {name} stopped to check if the whale replied!",
+  ":snail: {name} got distracted by a wet t-shirt contest on the shore!",
 ];
 
 const WIPEOUT_LINES = [
-  "💀 {name} stopped to hook up with Lexxi. WIPED OUT!",
-  "💀 {name} got mauled by a feral cat. WIPED OUT!",
-  "💀 {name} drowned lmfao. WIPED OUT!",
-  "💀 {name} got sat on by a 300 lb whale(heather). WIPED OUT!",
-  "💀 {name} choked on a mystery pill from the water. WIPED OUT!",
-  "💀 {name} got banned mid-race and escorted off the track. WIPED OUT!",
+  ":skull: {name} stopped to hook up with Lexxi. WIPED OUT!",
+  ":skull: {name} got mauled by a feral cat. WIPED OUT!",
+  ":skull: {name} drowned lmfao. WIPED OUT!",
+  ":skull: {name} got sat on by a 300 lb whale(heather). WIPED OUT!",
+  ":skull: {name} choked on a mystery pill from the water. WIPED OUT!",
+  ":skull: {name} got banned mid-race and escorted off the track. WIPED OUT!",
 ];
+
 
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const line = (template, racer) => template.replace("{name}", `**${shortName(racer.name)}**`);
@@ -384,6 +385,18 @@ async function runRace(channel, host, ducks) {
   }
 }
 
+// If something throws, tell the user instead of leaving "The application did not respond"
+async function safeFail(interaction, label, err) {
+  console.error(`duckBot ${label} error:`, err);
+  const payload = { content: "⚠️ Something went wrong starting the duck race. Check the bot's console logs.", flags: MessageFlags.Ephemeral };
+  try {
+    if (interaction.replied || interaction.deferred) await interaction.followUp(payload);
+    else await interaction.reply(payload);
+  } catch (_) {
+    /* interaction already expired or acknowledged */
+  }
+}
+
 // Finds the channel and confirms the bot can actually post embeds in it
 async function getUsableChannel(interaction) {
   const channel =
@@ -409,7 +422,7 @@ module.exports = (client, admin) => {
   const isDisabled = () => admin && admin.isModuleEnabled && admin.isModuleEnabled("duckBot") === false;
 
   const canHost = (member) =>
-    ALLOWED_ROLE_IDS.length === 0 || member?.roles?.cache?.some((r) => ALLOWED_ROLE_IDS.includes(r.id));
+    !ALLOWED_ROLE_IDS?.length || member?.roles?.cache?.some((r) => ALLOWED_ROLE_IDS.includes(r.id));
 
   function buildModal() {
     const modal = new ModalBuilder().setCustomId("duckRaceModal").setTitle("🦆 Duck Race Setup");
@@ -450,6 +463,7 @@ module.exports = (client, admin) => {
     if (!interaction.isChatInputCommand()) return;
     if (interaction.commandName !== "duckrace") return;
 
+    console.log(`duckBot: /duckrace received from ${interaction.user.tag} in ${interaction.guild?.name ?? "DM"}`);
     try {
       if (isDisabled()) {
         return await interaction.reply({ content: "❌ This module is currently disabled.", flags: MessageFlags.Ephemeral });
@@ -475,7 +489,7 @@ module.exports = (client, admin) => {
 
       await interaction.showModal(buildModal());
     } catch (err) {
-      console.error("duckBot /duckrace error:", err);
+      await safeFail(interaction, "/duckrace", err);
     }
   });
 
@@ -484,6 +498,7 @@ module.exports = (client, admin) => {
     if (!interaction.isModalSubmit()) return;
     if (interaction.customId !== "duckRaceModal") return;
 
+    console.log(`duckBot: modal submitted by ${interaction.user.tag} in ${interaction.guild?.name ?? "DM"}`);
     try {
       if (isDisabled()) {
         return await interaction.reply({ content: "❌ This module is currently disabled.", flags: MessageFlags.Ephemeral });
@@ -520,7 +535,7 @@ module.exports = (client, admin) => {
       await interaction.reply({ content: "🦆 The ducks are lining up...", flags: MessageFlags.Ephemeral });
       runRace(channel, interaction.user, ducks);
     } catch (err) {
-      console.error("duckBot modal submit error:", err);
+      await safeFail(interaction, "modal submit", err);
     }
   });
 
@@ -567,7 +582,7 @@ module.exports = (client, admin) => {
       const channel = await getUsableChannel(interaction);
       if (channel) runRace(channel, interaction.user, session.ducks);
     } catch (err) {
-      console.error("duckBot button error:", err);
+      await safeFail(interaction, "button", err);
     }
   });
 };
