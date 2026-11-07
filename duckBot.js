@@ -14,7 +14,7 @@ const {
 
 // ----------------- CONFIG -----------------
 const DUCK_CHANNEL_ID = null;     // set to a channel ID to restrict /duckrace to one channel (null = anywhere)
-const ALLOWED_ROLE_IDS = null; //["1416521000798912677"]; // only these roles can host races (empty = anyone)
+const ALLOWED_ROLE_IDS = null; //["1416521000798912677"]; only these roles can host races (empty = anyone)
 
 const WIPEOUT_CHANCE = 0.05;   // chance each duck gets wiped out during a race
 
