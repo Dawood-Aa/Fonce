@@ -88,31 +88,31 @@ function parseDucks(raw) {
 // ----------------- COMMENTARY -----------------
 // {name} is replaced with the duck's name. Add or edit lines freely.
 const BOOST_LINES = [
-  ":rocket: {name} runs after free porn and is boosted!",
-  ":rocket: {name} gets a gooning powerup!",
-  ":rocket: {name} bribed the judge with a handjob!",
-  ":rocket: {name} spotted a whale and got a massive tip boost!",
-  ":rocket: {name} popped a blue pill and is rocketing ahead!",
-  ":rocket: {name} caught a wave of simps and surges forward!",
+  "🚀 {name} runs after free porn and is boosted!",
+  "🚀 {name} gets a gooning powerup!",
+  "🚀 {name} bribed the judge with a handjob!",
+  "🚀 {name} spotted a whale and got a massive tip boost!",
+  "🚀 {name} popped a blue pill and is rocketing ahead!",
+  "🚀 {name} caught a wave of simps and surges forward!",
 ];
 
 const STALL_LINES = [
-  ":snail: {name} got stuck in a pair of Sally's panties!",
-  ":snail: {name} took a detour to sniff Heather's ass!",
-  ":snail: {name} stopped to take a thirst trap selfie for Micka!",
-  ":snail: {name} got distracted replying to Kat's DMs!",
-  ":snail: {name} got caught gooning in the reeds!",
-  ":snail: {name} stopped to check if the whale replied!",
-  ":snail: {name} got distracted by a wet t-shirt contest on the shore!",
+  "🐌 {name} got stuck in a pair of Sally's panties!",
+  "🐌 {name} took a detour to sniff Heather's ass!",
+  "🐌 {name} stopped to take a thirst trap selfie for Micka!",
+  "🐌 {name} got distracted replying to Kat's DMs!",
+  "🐌 {name} got caught gooning in the reeds!",
+  "🐌 {name} stopped to check if the whale replied!",
+  "🐌 {name} got distracted by a wet t-shirt contest on the shore!",
 ];
 
 const WIPEOUT_LINES = [
-  ":skull: {name} stopped to hook up with Lexxi. WIPED OUT!",
-  ":skull: {name} got mauled by a feral cat. WIPED OUT!",
-  ":skull: {name} drowned lmfao. WIPED OUT!",
-  ":skull: {name} got sat on by a 300 lb whale(heather). WIPED OUT!",
-  ":skull: {name} choked on a mystery pill from the water. WIPED OUT!",
-  ":skull: {name} got banned mid-race and escorted off the track. WIPED OUT!",
+  "💀 {name} stopped to hook up with Lexxi. WIPED OUT!",
+  "💀 {name} got mauled by a feral cat. WIPED OUT!",
+  "💀 {name} drowned lmfao. WIPED OUT!",
+  "💀 {name} got sat on by a 300 lb whale(heather). WIPED OUT!",
+  "💀 {name} choked on a mystery pill from the water. WIPED OUT!",
+  "💀 {name} got banned mid-race and escorted off the track. WIPED OUT!",
 ];
 
 
@@ -269,6 +269,18 @@ function buildEmbed({ title, color, racers, headline, size = "##", history = [],
   return embed;
 }
 
+// Full play-by-play. Stays on the message permanently, including after the race ends.
+function buildLogEmbed(log, color) {
+  const lines = [...log];
+  let text = lines.join("\n");
+  // Stay safely under Discord's embed size limits (drops oldest lines only if it ever gets huge)
+  while (text.length > 3500 && lines.length > 1) {
+    lines.shift();
+    text = lines.join("\n");
+  }
+  return new EmbedBuilder().setTitle("📜 Race Commentary").setColor(color).setDescription(text);
+}
+
 // ----------------- RACE RUNNER -----------------
 async function runRace(channel, host, ducks) {
   activeChannels.add(channel.id);
@@ -312,8 +324,8 @@ async function runRace(channel, host, ducks) {
     }
 
     // Race
-    const history = [];
-    let headline = "🔔 **QUACK!** And they're off!";
+    const log = ["🔔 **QUACK!** And they're off!"];
+    let headline = log[0];
     let size = "#";
     await msg.edit({
       embeds: [
@@ -325,14 +337,14 @@ async function runRace(channel, host, ducks) {
           size,
           footer,
         }),
+        buildLogEmbed(log, COLOR_GO),
       ],
     });
     await sleep(FRAME_MS);
 
     for (const frame of frames) {
       if (frame.note) {
-        history.unshift(headline); // previous headline slides into the smaller lines
-        if (history.length > 2) history.pop();
+        log.push(frame.note); // every moment is kept in the commentary log
         headline = frame.note;
         size = frame.big ? "#" : "##";
       }
@@ -344,9 +356,9 @@ async function runRace(channel, host, ducks) {
             racers: frame.racers,
             headline,
             size,
-            history,
             footer,
           }),
+          buildLogEmbed(log, COLOR_RACE),
         ],
       });
       await sleep(FRAME_MS);
@@ -360,7 +372,6 @@ async function runRace(channel, host, ducks) {
       racers: finalRacers,
       headline: `🏆 **${escapeMarkdown(winner)}** WINS THE RACE! 🏆`,
       size: "#",
-      history: history.slice(0, 2),
       footer: `${footer} • Congratulations, ${winner}!`,
     }).setTimestamp();
 
@@ -369,7 +380,7 @@ async function runRace(channel, host, ducks) {
       new ButtonBuilder().setCustomId("duck_newducks").setLabel("New Ducks").setEmoji("🦆").setStyle(ButtonStyle.Secondary)
     );
 
-    await msg.edit({ embeds: [results], components: [row] });
+    await msg.edit({ embeds: [results, buildLogEmbed(log, COLOR_FINISH)], components: [row] });
 
     sessions.set(msg.id, { ducks, hostId: host.id });
     const timer = setTimeout(() => {
